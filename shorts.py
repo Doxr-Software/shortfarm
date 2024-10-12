@@ -2,36 +2,41 @@
 from dotenv import load_dotenv
 import random
 import os
-import openai
+from g4f.client import Client
+from g4f.Provider import DDG
+from random_word import RandomWords
 from gtts import gTTS
 from moviepy.editor import *
 import moviepy.video.fx.crop as crop_vid
 load_dotenv()
+r = RandomWords()
+client = Client(provider=DDG)
 
 # Ask for video info
-title = input("\nEnter the name of the video >  ")
-option = input('Do you want AI to generate content? (yes/no) >  ')
+title = "example"
+option = "yes"
 
 if option == 'yes':
-    # Generate content using OpenAI API
-    theme = input("\nEnter the theme of the video >  ")
-
-    ### MAKE .env FILE AND SAVE YOUR API KEY ###
-    openai.api_key = os.environ["OPENAI_API"]
-    response = openai.Completion.create(
-        engine="gpt-3.5-turbo-instruct",
-        prompt=f"Act as an script writer who writes engaging and professional scripts for tiktok shorts. you never do a grammatical mistake and write very engaging scripts that touches the viewers' attention. At the beginning of the video you never forget to add a viral hook that will catch the viewers attention and will break the scroll. Your scripts are so loved by users that they subscribe and follow the channel. Don't mention any channel's name but at appropriate point tell the viewer to like the video and follow or subscribe the channel or account. (Remember tiktok shorts have max limit of 1 min). Now Generate content on - \"{theme}\"",
-        temperature=0.7,
-        max_tokens=200,
-        top_p=1,
-        frequency_penalty=0,
-        presence_penalty=0
+    # Generate theme using g4f
+    theme_response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[{"role": "system", "content": f"Give a very very short phrase of an interesting topic. The theme should be interesting but not complicated or deep. {r.get_random_word()}"}],
     )
-    print(response.choices[0].text)
+    theme = theme_response.choices[0].message.content
+    print(f"\nGenerated theme: {theme}")
+
+    # Generate content using g4f
+    chat_completion = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[{"role": "system", "content": f"Act as an script writer who writes engaging and professional scripts for tiktok shorts. you never do a grammatical mistake and write very engaging scripts that touches the viewers' attention. At the beginning of the video you never forget to add a viral hook that will catch the viewers attention and will break the scroll. Your scripts are so loved by users that they subscribe and follow the channel. Don't mention any channel's name but at appropriate point tell the viewer to like the video and follow or subscribe the channel or account. (Remember tiktok shorts have max limit of 1 min). Do not use ANY markdown or indicators; you're only making the speaking part of the script and the user will handle all other elements. Everything you generate should be English. Now Generate content on - \"{theme}\""}],
+    )
+    generated_content = chat_completion.choices[0].message.content
+    print("\nGenerated content:")
+    print(generated_content)
 
     yes_no = input('\nIs this fine? (yes/no) >  ')
     if yes_no == 'yes':
-        content = response.choices[0].text
+        content = generated_content
     else:
         content = input('\nEnter >  ')
 else:
