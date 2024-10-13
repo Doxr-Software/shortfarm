@@ -347,4 +347,9 @@ pyrightconfig.json
 
 test.py
 generated/
+gameplay/*
 .idea/
+temp-audio.m4a
+upload_video.py-oauth2.json
+fullauto.sh
+client_secrets.json
